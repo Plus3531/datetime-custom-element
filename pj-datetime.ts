@@ -23,7 +23,7 @@ const createUtcDate = (date) =>
     return undefined;
   };
   
-const date1 = new Date(2022, 8, 22, 23, 30);
+let date1 = new Date(2022, 8, 22, 23, 30);
   
 export class PjDatetime extends HTMLElement {
   private te;
@@ -42,6 +42,11 @@ export class PjDatetime extends HTMLElement {
     this.te = shadowRoot.getElementById('time-incident') as HTMLInputElement;
     this.de = shadowRoot.getElementById('date-incident') as HTMLInputElement;  
     this.plusMinutes = shadowRoot.getElementById('plus-minutes') as HTMLInputElement;
+
+    const displayIso = this.display;
+    if (displayIso) {
+      date1 = new Date(displayIso);
+    }
     this.de.valueAsDate = createUtcDate(date1);
     this.te.valueAsDate = createUtcDate(date1);
     this.addEventListeners();
@@ -50,7 +55,17 @@ export class PjDatetime extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListeners();
   }
-
+  get display() {
+    return this.getAttribute('display');
+  }
+  
+  set display(iso) {
+    if (iso) {
+      this.setAttribute('display', iso);
+    } else {
+      this.removeAttribute('display');
+    }
+  }
   plusMinutesKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === 'Tab') {
       if (this.plusMinutes.value.startsWith('+')) {
@@ -76,9 +91,17 @@ export class PjDatetime extends HTMLElement {
   plusMinutesBlur = (event) => {
     this.plusMinutes.style.display = 'none';
   }
+  
   teChanged = (event) => {
+    this.display = combineToDate(this.te.valueAsDate, this.de.valueAsDate).toISOString();
     console.log(`time change:  ${combineToDate(this.te.valueAsDate, this.de.valueAsDate)}`);
   }
+
+  deChanged = (event) => {
+    this.display = combineToDate(this.te.valueAsDate, this.de.valueAsDate).toISOString();
+    console.log(`date change:  ${combineToDate(this.te.valueAsDate, this.de.valueAsDate)}`);
+  }
+
   teKeyDown = (event) => {
     if (event.key === '+') {
       this.plusMinutes.value = '';
@@ -90,9 +113,7 @@ export class PjDatetime extends HTMLElement {
       this.plusMinutes.focus();
     }
   }
-  deChanged = (event) => {
-    console.log(`date change:  ${combineToDate(this.te.valueAsDate, this.de.valueAsDate)}`);
-  }
+
   addEventListeners() {
     this.plusMinutes.addEventListener('keydown', this.plusMinutesKeyDown);
     this.de.addEventListener('change', this.deChanged);
