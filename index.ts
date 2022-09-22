@@ -1,6 +1,5 @@
 // Import stylesheets
 import './style.css';
+import './pj-datetime';
 
-// Write TypeScript code!
 const appDiv: HTMLElement = document.getElementById('app');
-appDiv.innerHTML = `<h1>Datetime custom element</h1>`;
