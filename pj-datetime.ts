@@ -24,7 +24,7 @@ const createUtcDate = (date) =>
   };
   
 let date1 = new Date(2022, 8, 22, 23, 30);
-  
+const customEventName = 'datetimeChanged';
 export class PjDatetime extends HTMLElement {
   private te;
   private de;
@@ -55,6 +55,9 @@ export class PjDatetime extends HTMLElement {
   disconnectedCallback() {
     this.removeEventListeners();
   }
+  get eventName() {
+    return customEventName;
+  }
   get display() {
     return this.getAttribute('display');
   }
@@ -62,6 +65,8 @@ export class PjDatetime extends HTMLElement {
   set display(iso) {
     if (iso) {
       this.setAttribute('display', iso);
+      const event = new CustomEvent(customEventName, { detail: iso,  composed: true, bubbles: true});
+      this.dispatchEvent(event);
     } else {
       this.removeAttribute('display');
     }
@@ -91,7 +96,7 @@ export class PjDatetime extends HTMLElement {
   plusMinutesBlur = (event) => {
     this.plusMinutes.style.display = 'none';
   }
-  
+
   teChanged = (event) => {
     this.display = combineToDate(this.te.valueAsDate, this.de.valueAsDate).toISOString();
     console.log(`time change:  ${combineToDate(this.te.valueAsDate, this.de.valueAsDate)}`);
