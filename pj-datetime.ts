@@ -26,8 +26,9 @@ const createUtcDate = (date) =>
 const date1 = new Date(2022, 8, 22, 23, 30);
   
 export class PjDatetime extends HTMLElement {
-  private te;// = document.getElementById('time-incident') as HTMLInputElement;
-  private de;// = document.getElementById('date-incident') as HTMLInputElement;  
+  private te;
+  private de;
+  private plusMinutes;
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -40,8 +41,68 @@ export class PjDatetime extends HTMLElement {
     shadowRoot.appendChild(templateContent);
     this.te = shadowRoot.getElementById('time-incident') as HTMLInputElement;
     this.de = shadowRoot.getElementById('date-incident') as HTMLInputElement;  
+    this.plusMinutes = shadowRoot.getElementById('plus-minutes') as HTMLInputElement;
     this.de.valueAsDate = createUtcDate(date1);
     this.te.valueAsDate = createUtcDate(date1);
+    this.addEventListeners();
+  }
+
+  disconnectedCallback() {
+    this.removeEventListeners();
+  }
+
+  plusMinutesKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === 'Tab') {
+      if (this.plusMinutes.value.startsWith('+')) {
+        const cnt = this.plusMinutes.value.substring(1);
+        const count = Number(cnt);
+        if (count !== NaN) {
+          const utcTime = this.te.valueAsDate;
+          const utcDate = this.de.valueAsDate;
+          const date = combineToDate(utcTime, utcDate);
+          if (date) {
+            date.setMinutes(date.getMinutes() + count);
+            this.de.valueAsDate = createUtcDate(date);
+            this.te.valueAsDate = createUtcDate(date);
+            const event = new Event('change');
+            this.te.dispatchEvent(event);
+          }
+        }
+      }
+      this.plusMinutes.style.display = 'none';
+    }
+  }
+  plusMinutesBlur = (event) => {
+    this.plusMinutes.style.display = 'none';
+  }
+  teChanged = (event) => {
+    console.log(`time change:  ${combineToDate(this.te.valueAsDate, this.de.valueAsDate)}`);
+  }
+  teKeyDown = (event) => {
+    if (event.key === '+') {
+      this.plusMinutes.value = '';
+      this.plusMinutes.style.position = 'absolute';
+      this.plusMinutes.style.display = 'block';
+      this.plusMinutes.style.left = `${this.te.getBoundingClientRect().left}px`;
+      this.plusMinutes.style.top = `${this.te.getBoundingClientRect().top}px`;
+      //plusMinutes.value = '+'
+      this.plusMinutes.focus();
+    }
+  }
+  deChanged = (event) => {
+    console.log(`date change:  ${combineToDate(this.te.valueAsDate, this.de.valueAsDate)}`);
+  }
+  addEventListeners() {
+    this.plusMinutes.addEventListener('keydown', this.plusMinutesKeyDown);
+    this.de.addEventListener('change', this.deChanged);
+    this.te.addEventListener('change', this.teChanged);
+    this.te.addEventListener('keydown', this.teKeyDown);
+  }
+  removeEventListeners() {
+    this.plusMinutes.removeEventListener('keydown', this.plusMinutesKeyDown);
+    this.de.removeEventListener('change', this.deChanged);
+    this.te.removeEventListener('change', this.teChanged);
+    this.te.removeEventListener('keydown', this.teKeyDown);
   }
 }
 customElements.define('pj-datetime', PjDatetime);
