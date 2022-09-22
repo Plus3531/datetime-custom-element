@@ -66,6 +66,7 @@ export class PjDatetime extends HTMLElement {
             this.te.valueAsDate = createUtcDate(date);
             const event = new Event('change');
             this.te.dispatchEvent(event);
+            this.de.focus();
           }
         }
       }
